@@ -1,22 +1,17 @@
 Attribute VB_Name = "Module1"
 Function customFormat(inputvalue As Double) As String
-If inputvalue = 0 Then
-customFormat = "-"
-ElseIf inputvalue < 1 Then
-customFormat = inputvalue
-Else
-
-
-
-
 customFormat = Format(inputvalue, "#,###.##")
 If (Right(customFormat, 1) = ".") Then
     customFormat = Left(customFormat, Len(customFormat) - 1)
+    If customFormat = "" Then
+        customFormat = 0
+    End If
 End If
-End If
+    
 
 End Function
 Sub districtFactsheetGenerator()
+'=============== Create Objects, Define variables and input data location
 Dim ed As Excel.Application
 Dim ws As Excel.Worksheet
 Dim wb As Excel.Workbook
@@ -26,35 +21,39 @@ Set ed = CreateObject("Excel.Application")
 'Set wb = ed.Workbooks.Open("C:\Users\Y.farzi\Desktop\Implementation\results\totRes-color4.xlsx")
 Set wb = ed.Workbooks.Open("C:\Users\2740554486\Desktop\emri\facsheet221\Implementation\results\totRes-color7.xlsx")
 
-'district
-' wb.Sheets.Count
+'=================== Create a factsheet for each province
+'=================== based on the opened document having design and table elements
+
+' wb.Sheets.Count each sheet shoud be related to one province data
 For i = 0 To 30
 
+'--------------- Map insertion, Croping and province name insertion
 ActiveDocument.Tables(1).Cell(2, 2).Range.Text = wb.sheets(CStr(i)).Cells(1, 15).Value
 If ActiveDocument.Tables(1).Cell(1, 2).Range.InlineShapes.Count = 1 Then
     ActiveDocument.Tables(1).Cell(1, 2).Range.InlineShapes(1).Delete
 End If
+
 ActiveDocument.Tables(1).Cell(1, 2).Range.InlineShapes.AddPicture ("C:\Users\2740554486\Desktop\emri\facsheet221\Implementation\png\" + CStr(i) + ".png")
 With ActiveDocument.Tables(1).Cell(1, 2).Range.InlineShapes(1)
-.PictureFormat.CropTop = 70
-.PictureFormat.CropBottom = 80
-.PictureFormat.CropLeft = 120
-.PictureFormat.CropRight = 105
-.Height = 150
-.Width = 180
+    .PictureFormat.CropTop = 70
+    .PictureFormat.CropBottom = 80
+    .PictureFormat.CropLeft = 120
+    .PictureFormat.CropRight = 105
+    .Height = 150
+    .Width = 180
 End With
-'problems = wb.sheets("provs").Cells(2, "r").Value + wb.sheets(CStr(i)).Cells(1, 15).Value + wb.sheets("provs").Cells(2, "p").Value + " "
+problems = wb.sheets("provs").Cells(2, "r").Value + wb.sheets(CStr(i)).Cells(1, 15).Value + wb.sheets("provs").Cells(2, "p").Value + " "
 
 probCount = 0
-'metabolic
+'--------------  Metabolic Table filling
 For j = 1 To 16
 For k = 3 To 8
-    ActiveDocument.Tables(2).Cell(j + 3, k).Range.Text = customFormat(wb.sheets(CStr(i)).Cells(j + 1, k).Value)
-    ActiveDocument.Tables(2).Cell(j + 3, k).Range.Shading.BackgroundPatternColor = wb.sheets(CStr(i)).Cells(j + 1, k).DisplayFormat.Interior.Color
+    ActiveDocument.Tables(3).Cell(j + 3, k).Range.Text = customFormat(wb.sheets(CStr(i)).Cells(j + 1, k).Value)
+    ActiveDocument.Tables(3).Cell(j + 3, k).Range.Shading.BackgroundPatternColor = wb.sheets(CStr(i)).Cells(j + 1, k).DisplayFormat.Interior.Color
     If k = 5 Or k = 8 Then
     probCount = 1
         If customFormat(wb.sheets(CStr(i)).Cells(j + 1, k).Value) > 27 Then
-        problems = problems + Left(ActiveDocument.Tables(2).Cell(j + 3, 1).Range.Text, Len(ActiveDocument.Tables(2).Cell(j + 3, 1).Range.Text) - 2)
+        problems = problems + Left(ActiveDocument.Tables(3).Cell(j + 3, 1).Range.Text, Len(ActiveDocument.Tables(2).Cell(j + 3, 1).Range.Text) - 2)
         
             If k = 5 Then
             problems = problems + wb.sheets("provs").Cells(4, "p").Value
@@ -67,15 +66,15 @@ For k = 3 To 8
 Next
 Next
 
-'Behavioral
-For j = 1 To 8
+'-------------- Behavioral Table filling
+For j = 1 To 7
 For k = 3 To 8
-    ActiveDocument.Tables(3).Cell(j + 3, k).Range.Text = customFormat(wb.sheets(CStr(i)).Cells(j + 17, k).Value)
-    ActiveDocument.Tables(3).Cell(j + 3, k).Range.Shading.BackgroundPatternColor = wb.sheets(CStr(i)).Cells(j + 17, k).DisplayFormat.Interior.Color
+    ActiveDocument.Tables(2).Cell(j + 3, k).Range.Text = customFormat(wb.sheets(CStr(i)).Cells(j + 17, k).Value)
+    ActiveDocument.Tables(2).Cell(j + 3, k).Range.Shading.BackgroundPatternColor = wb.sheets(CStr(i)).Cells(j + 17, k).DisplayFormat.Interior.Color
     If k = 5 Or k = 8 Then
     probCount = 1
         If customFormat(wb.sheets(CStr(i)).Cells(j + 17, k).Value) > 27 Then
-        problems = problems + Left(ActiveDocument.Tables(3).Cell(j + 3, 1).Range.Text, Len(ActiveDocument.Tables(3).Cell(j + 3, 1).Range.Text) - 2)
+        problems = problems + Left(ActiveDocument.Tables(2).Cell(j + 3, 1).Range.Text, Len(ActiveDocument.Tables(3).Cell(j + 3, 1).Range.Text) - 2)
         
             If k = 5 Then
             problems = problems + wb.sheets("provs").Cells(4, "p").Value
@@ -118,9 +117,9 @@ Next
 'ActiveDocument.Tables(5).Cell(j + 2, k + 1).Range.Shading.BackgroundPatternColor = wb.Sheets(CStr(i)).Cells(j + 18, k + 1).DisplayFormat.Interior.Color
 'Next
 'Next
-
-ActiveDocument.SaveAs2 FileName:="C:\Users\2740554486\Desktop\emri\facsheet221\Implementation\pdf\v5\factsheet1401-" + CStr(i) + "-v5.pdf", FileFormat:=wdFormatPDF
-ActiveDocument.SaveAs2 FileName:="C:\Users\2740554486\Desktop\emri\facsheet221\Implementation\pdf\v5\factsheet1401-" + CStr(i) + "-v5.docx", FileFormat:=wdFormatDocumentDefault
+Debug.Print "province " + CStr(i) + " finished."
+ActiveDocument.SaveAs2 FileName:="C:\Users\2740554486\Desktop\emri\facsheet221\Implementation\pdf\v7\factsheet1401-ostandari-" + CStr(i) + "-v1.pdf", FileFormat:=wdFormatPDF
+ActiveDocument.SaveAs2 FileName:="C:\Users\2740554486\Desktop\emri\facsheet221\Implementation\pdf\v7\factsheet1401-ostandari-" + CStr(i) + "-v1.docx", FileFormat:=wdFormatDocumentDefault
 
 
 'End If
